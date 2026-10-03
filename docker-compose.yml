@@ -1,4 +1,3 @@
-version: "3"
 services:
   postgres:
     image: library/postgres:13
@@ -14,7 +13,62 @@ services:
     ports:
       - "5432:5432"
 
-# TODO добавить сервисы
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      FLIGHT_SERVICE_URL: "http://flight_service:8060"
+      TICKET_SERVICE_URL: "http://ticket_service:8070"
+      BONUS_SERVICE_URL: "http://bonus_service:8050"
+    depends_on:
+      - flight_service
+      - ticket_service
+      - bonus_service
+
+  flight_service:
+    build: ./flight_service
+    container_name: flight_service
+    restart: on-failure
+    ports:
+      - "8060:8060"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: program
+      DB_PASSWORD: test
+    depends_on:
+      - postgres
+
+  ticket_service:
+    build: ./ticket_service
+    container_name: ticket_service
+    restart: on-failure
+    ports:
+      - "8070:8070"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: program
+      DB_PASSWORD: test
+    depends_on:
+      - postgres
+
+  bonus_service:
+    build: ./bonus_service
+    container_name: bonus_service
+    restart: on-failure
+    ports:
+      - "8050:8050"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: program
+      DB_PASSWORD: test
+    depends_on:
+      - postgres
 
 volumes:
   db-data:
